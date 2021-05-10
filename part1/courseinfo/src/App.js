@@ -1,39 +1,60 @@
 import React from "react";
 
-const Header = ({ title }) => {
-  return <h1>{title}</h1>;
+const Part = ({ name, exercises }) => (
+  <p>
+    {name} {exercises}
+  </p>
+);
+
+const Header = ({ course }) => {
+  return <h1>{course.name}</h1>;
 };
 
-const Content = ({ part, exercises }) => {
+const Content = ({ course }) => {
+  return (
+    <React.Fragment>
+      {course.parts.map((part, i) => (
+        <Part key={i} name={part.name} exercises={part.exercises} />
+      ))}
+    </React.Fragment>
+  );
+};
+
+const Total = ({ course }) => {
   return (
     <p>
-      {part} {exercises}
+      Number of exercises{" "}
+      {course.parts
+        .map((part) => part.exercises)
+        .reduce((total, num) => total + num)}
     </p>
   );
 };
 
 const App = () => {
-  const course = "Half Stack application development";
-  const part1 = "Fundamentals of React";
-  const exercises1 = 10;
-  const part2 = "Using props to pass data";
-  const exercises2 = 7;
-  const part3 = "State of a component";
-  const exercises3 = 14;
+  const course = {
+    name: "Half Stack application development",
+    parts: [
+      {
+        name: "Fundamentals of React",
+        exercises: 10,
+      },
+      {
+        name: "Using props to pass data",
+        exercises: 7,
+      },
+      {
+        name: "State of a component",
+        exercises: 14,
+      },
+    ],
+  };
 
   return (
     <div>
-      <h1>{course}</h1>
-      <p>
-        {part1} {exercises1}
-      </p>
-      <p>
-        {part2} {exercises2}
-      </p>
-      <p>
-        {part3} {exercises3}
-      </p>
-      <p>Number of exercises {exercises1 + exercises2 + exercises3}</p>
+      <Header course={course} />
+      <Content course={course} />
+      <Total course={course} />
     </div>
   );
 };
