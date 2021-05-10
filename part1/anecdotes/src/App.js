@@ -1,5 +1,20 @@
 import React, { useState } from "react";
 
+const Button = ({ handleClick, text }) => (
+  <button onClick={handleClick}>{text}</button>
+);
+const HighestVote = ({ points, anecdotes }) => {
+  const mostpoints = Math.max(...points);
+
+  return (
+    <>
+      <h2>Anecdotes with most votes</h2>
+      <div>{anecdotes[points.indexOf(mostpoints)]}</div>
+      <div>has {mostpoints} votes</div>
+    </>
+  );
+};
+
 const App = () => {
   const anecdotes = [
     "If it hurts, do it more often",
@@ -11,8 +26,27 @@ const App = () => {
   ];
 
   const [selected, setSelected] = useState(0);
+  const [points, setPoints] = useState(new Array(6).fill(0));
 
-  return <div>{anecdotes[selected]}</div>;
+  const handleNextAnecdote = () => () => {
+    setSelected(Math.floor(Math.random() * anecdotes.length));
+  };
+
+  const handleVote = () => () => {
+    const copy = [...points];
+    copy[selected] = copy[selected] + 1;
+    setPoints(copy);
+  };
+
+  return (
+    <>
+      <div>{anecdotes[selected]}</div>
+      <div>has {points[selected]}</div>
+      <Button handleClick={handleVote()} text={"vote"} />
+      <Button handleClick={handleNextAnecdote()} text={"next anecdote"} />
+      <HighestVote points={points} anecdotes={anecdotes} />
+    </>
+  );
 };
 
 export default App;
