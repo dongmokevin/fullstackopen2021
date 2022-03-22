@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { getAll, remove, create, update } from "./services/persons";
+import "./index.css";
 
 const Persons = ({ persons, newFilter, deletePerson }) => {
   const personsToShow = newFilter
@@ -38,6 +38,8 @@ const PersonForm = ({
   setNewNumber,
   persons,
   setPersons,
+  setErrorMessage,
+  setMessageType,
 }) => {
   const handleName = (event) => {
     setNewName(event.target.value);
@@ -62,20 +64,44 @@ const PersonForm = ({
       ? window.confirm(
           `${newName} is already added to phonebook, replace the old number with a new one ?`
         )
-        ? update(
-            persons.find((person) => person.name === newName).id,
-            name
-          ).then((res) =>
-            setPersons(
-              persons.map((person) =>
-                person.name === res.name
-                  ? { ...person, number: res.number }
-                  : person
+        ? update(persons.find((person) => person.name === newName).id, name)
+            .then(
+              (res) => (
+                setPersons(
+                  persons.map((person) =>
+                    person.name === res.name
+                      ? { ...person, number: res.number }
+                      : person
+                  )
+                ),
+                setMessageType("success"),
+                setErrorMessage(`Updated ${newName} number to ${res.number}`),
+                setTimeout(() => {
+                  setErrorMessage(null);
+                  setMessageType("");
+                }, 5000)
               )
             )
-          )
+            .catch((error) => {
+              setMessageType("error");
+              setErrorMessage(
+                `Information from ${newName} has already been removed from server`
+              );
+              setTimeout(() => {
+                setErrorMessage(null);
+              }, 5000);
+            })
         : console.log("canceled")
-      : create(name).then((res) => setPersons(persons.concat(res)));
+      : create(name)
+          .then((res) => setPersons(persons.concat(res)))
+          .then(
+            (setMessageType("success"),
+            setErrorMessage(`Added ${newName}`),
+            setTimeout(() => {
+              setErrorMessage(null);
+              setMessageType("");
+            }, 5000))
+          );
 
     setNewName("");
     setNewNumber("");
@@ -96,12 +122,22 @@ const PersonForm = ({
   );
 };
 
+const Notification = ({ message, messageType }) => {
+  if (message === null) {
+    return null;
+  } else {
+    return <div className={messageType}>{message}</div>;
+  }
+};
+
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
 
   const [newFilter, setNewFilter] = useState("");
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [messageType, setMessageType] = useState("");
 
   useEffect(() => {
     getAll().then((res) => setPersons(res));
@@ -111,16 +147,15 @@ const App = () => {
     const personName = event.target.attributes.name.value;
     const personId = event.target.attributes.id.value;
     if (window.confirm(`Delete ${personName}`)) {
-      remove(personId);
-
       const Newperson = persons.filter((person) => person.name !== personName);
-      setPersons(Newperson);
+      remove(personId).then(setPersons(Newperson));
     }
   };
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={errorMessage} messageType={messageType} />
       <Filter newFilter={newFilter} setNewFilter={setNewFilter} />
       <h3>add a new</h3>
       <PersonForm
@@ -130,6 +165,8 @@ const App = () => {
         setNewNumber={setNewNumber}
         persons={persons}
         setPersons={setPersons}
+        setErrorMessage={setErrorMessage}
+        setMessageType={setMessageType}
       />
       <h3>Numbers</h3>
       <Persons
