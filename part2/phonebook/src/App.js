@@ -12,7 +12,9 @@ const Persons = ({ persons, newFilter, deletePerson }) => {
   return personsToShow.map((person) => (
     <div key={person.name}>
       {person.name} {person.number}{" "}
-      <button onClick={deletePerson}>delete</button>
+      <button onClick={deletePerson} name={person.name} id={person.id}>
+        delete
+      </button>
     </div>
   ));
 };
@@ -50,10 +52,31 @@ const PersonForm = ({
     if (newName === "") {
       return alert("Invalid input, empty names are not allowed");
     }
+
+    const personExist = () => persons.some((person) => person.name === newName);
+
+    // console.log(personExist());
     const name = { name: newName, number: newNumber };
-    persons.some((person) => person.name === newName)
-      ? alert(`${newName} is already added to phonebook`)
+
+    personExist()
+      ? window.confirm(
+          `${newName} is already added to phonebook, replace the old number with a new one ?`
+        )
+        ? update(
+            persons.find((person) => person.name === newName).id,
+            name
+          ).then((res) =>
+            setPersons(
+              persons.map((person) =>
+                person.name === res.name
+                  ? { ...person, number: res.number }
+                  : person
+              )
+            )
+          )
+        : console.log("canceled")
       : create(name).then((res) => setPersons(persons.concat(res)));
+
     setNewName("");
     setNewNumber("");
   };
@@ -84,6 +107,17 @@ const App = () => {
     getAll().then((res) => setPersons(res));
   }, []);
 
+  const deletePerson = (event) => {
+    const personName = event.target.attributes.name.value;
+    const personId = event.target.attributes.id.value;
+    if (window.confirm(`Delete ${personName}`)) {
+      remove(personId);
+
+      const Newperson = persons.filter((person) => person.name !== personName);
+      setPersons(Newperson);
+    }
+  };
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -98,7 +132,11 @@ const App = () => {
         setPersons={setPersons}
       />
       <h3>Numbers</h3>
-      <Persons persons={persons} newFilter={newFilter} />
+      <Persons
+        persons={persons}
+        newFilter={newFilter}
+        deletePerson={deletePerson}
+      />
     </div>
   );
 };
