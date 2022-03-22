@@ -88,6 +88,7 @@ const PersonForm = ({
                 `Information from ${newName} has already been removed from server`
               );
               setTimeout(() => {
+                setMessageType("");
                 setErrorMessage(null);
               }, 5000);
             })
@@ -148,7 +149,11 @@ const App = () => {
     const personId = event.target.attributes.id.value;
     if (window.confirm(`Delete ${personName}`)) {
       const Newperson = persons.filter((person) => person.name !== personName);
-      remove(personId).then(setPersons(Newperson));
+      remove(personId).then(
+        (setPersons(Newperson),
+        setMessageType("error"),
+        setErrorMessage(`${personName} was successfully deleted`))
+      );
     }
   };
 
