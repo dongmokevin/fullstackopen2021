@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { getAll, remove, create, update } from "./services/persons";
 
-const Persons = ({ persons, newFilter }) => {
+const Persons = ({ persons, newFilter, deletePerson }) => {
   const personsToShow = newFilter
     ? persons.filter((person) =>
         person.name.toLowerCase().includes(newFilter.toLowerCase())
       )
     : persons;
+
   return personsToShow.map((person) => (
     <div key={person.name}>
-      {person.name} {person.number}
+      {person.name} {person.number}{" "}
+      <button onClick={deletePerson}>delete</button>
     </div>
   ));
 };
@@ -50,7 +53,7 @@ const PersonForm = ({
     const name = { name: newName, number: newNumber };
     persons.some((person) => person.name === newName)
       ? alert(`${newName} is already added to phonebook`)
-      : setPersons(persons.concat(name));
+      : create(name).then((res) => setPersons(persons.concat(res)));
     setNewName("");
     setNewNumber("");
   };
@@ -78,9 +81,7 @@ const App = () => {
   const [newFilter, setNewFilter] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
-      setPersons(response.data);
-    });
+    getAll().then((res) => setPersons(res));
   }, []);
 
   return (
